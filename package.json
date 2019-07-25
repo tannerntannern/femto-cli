@@ -1,0 +1,12 @@
+{
+  "name": "femto-cli",
+  "version": "0.1.0-alpha",
+  "description": "A TypeScript solution for making Node.js command-line interfaces.",
+  "main": "index.js",
+  "devDependencies": {
+    "typescript": "^3.5.3"
+  },
+  "repository": "https://github.com/tannerntannern/femto-cli.git",
+  "author": "Tanner Nielsen <tannerntannern@gmail.com>",
+  "license": "MIT"
+}
