@@ -17,7 +17,7 @@ script:
   - yarn test
 after_success:
   - yarn coverage
-  - node_module/.bin/if-node-version "12" yarn coveralls
+  - node_modules/.bin/if-node-version "12" yarn coveralls
 
 cache:
   directories:
