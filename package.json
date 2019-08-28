@@ -23,7 +23,8 @@
   },
   "dependencies": {
     "kleur": "^3.0.3",
-    "mri": "^1.1.4"
+    "mri": "^1.1.4",
+    "ts-toolbelt": "^3.8.59"
   },
   "devDependencies": {
     "@commitlint/cli": "^8.1.0",
