@@ -22,16 +22,33 @@ describe('resolveCommand()', () => {
 	};
 
 	it('should resolve known commands', () => {
-		expect(resolveCommand(commands, ['sub1', 'comm1'], '_')).to.equal(commands.sub1.comm1);
-		expect(resolveCommand(commands, ['sub1', 'subSub2', 'comm2'], '_')).to.equal(commands.sub1.subSub2.comm2);
+		expect(
+			resolveCommand(commands, ['sub1', 'comm1'], '_').command
+		).to.equal(commands.sub1.comm1);
+
+		expect(
+			resolveCommand(commands, ['sub1', 'subSub2', 'comm2'], '_').command
+		).to.equal(commands.sub1.subSub2.comm2);
 	});
 
 	it('should resolve to root commands when no command is at end of path', () => {
-		expect(resolveCommand(commands, [], '_')).to.equal(commands._);
-		expect(resolveCommand(commands, ['sub1', 'subSub2'], '_')).to.equal(commands.sub1.subSub2._);
+		expect(
+			resolveCommand(commands, [], '_').command
+		).to.equal(commands._);
+
+		expect(
+			resolveCommand(commands, ['sub1', 'subSub2'], '_').command
+		).to.equal(commands.sub1.subSub2._);
 	});
 
 	it('should throw an error when the path is invalid', () => {
 		expect(() => resolveCommand(commands, ['apple', 'juice'], '_')).to.throw;
+	});
+	
+	it('should resolve to a group when path doesn\'t end on a command and no root is available', () => {
+		let resolution = resolveCommand(commands, ['sub1', 'subSub1'], '_');
+
+		expect(resolution.command).to.equal(null);
+		expect(resolution.context).to.equal(commands.sub1.subSub1);
 	});
 });

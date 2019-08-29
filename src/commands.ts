@@ -1,49 +1,59 @@
-import { O } from 'ts-toolbelt';
+import { O, T } from 'ts-toolbelt';
 import { Command, IsCommand, isCommand } from './command';
 
 export type Commands = {[command: string]: Commands | Command};
 
-// TODO: make `Cmds extends Commands` possible without causing recursive depth problems
-type _GetCommand<
+type GetCommand<
 	Cmds extends object,
 	Path extends string[],
 	Root extends string,
 	AtPath = O.Path<Cmds, Path>
 > =
 	AtPath extends never
-		? never
-		: Root extends keyof AtPath
-			? AtPath[Root]
-			: IsCommand<AtPath> extends true
-				? AtPath
-				: never;
+		? null
+		: IsCommand<AtPath> extends true
+			? AtPath
+			: Root extends keyof AtPath
+				? AtPath[Root]
+				: AtPath;
 
-type GetCommand<Cmds extends object, Path extends string[], Root extends string> = _GetCommand<Cmds, Path, Root>;
+
+type CommandContext<Cmds extends object, Path extends string[], Root extends string> = {
+	command: GetCommand<Cmds, Path, Root>,
+	context: GetCommand<Cmds, T.Pop<Path>, Root>
+};
 
 export const resolveCommand = <
 	Cmds extends object,
 	Args extends string[],
 	Root extends string
->(
-	commands: Cmds,
-	argv: Args,
-	root: Root
-): GetCommand<Cmds, Args, Root> => {
+>(commands: Cmds, argv: Args, root: Root): CommandContext<Cmds, Args, Root> => {
+	let prev: any = null;
 	let curr: any = commands;
 	let index = 0;
 	while (index < argv.length) {
 		let key = argv[index];
 		if (!(key in curr)) throw new Error(`Command ${key} not found`);
 
+		prev = curr;
 		curr = curr[argv[index]];
 		index ++;
 	}
 
 	if (isCommand(curr))
-		return curr as any;
+		return {
+			command: curr as any,
+			context: prev,
+		};
 	else if (root in curr && isCommand(curr[root]))
-		return curr[root];
+		return {
+			command: curr[root],
+			context: curr,
+		};
 	else
-		throw new Error(`Command ${argv[index]} not found`);
+		return {
+			command: null,
+			context: curr,
+		};
 };
 
