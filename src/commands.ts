@@ -18,7 +18,7 @@ type GetCommand<
 				: AtPath;
 
 
-type CommandContext<Cmds extends object, Path extends string[], Root extends string> = {
+export type CommandContext<Cmds extends object, Path extends string[], Root extends string> = {
 	command: GetCommand<Cmds, Path, Root>,
 	context: GetCommand<Cmds, T.Pop<Path>, Root>
 };
@@ -33,7 +33,7 @@ export const resolveCommand = <
 	let index = 0;
 	while (index < argv.length) {
 		let key = argv[index];
-		if (!(key in curr)) throw new Error(`Command ${key} not found`);
+		if (!(key in curr)) throw new Error(`Command "${key}" not found`);
 
 		prev = curr;
 		curr = curr[argv[index]];
