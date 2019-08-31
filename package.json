@@ -9,6 +9,7 @@
     "dist"
   ],
   "scripts": {
+    "demo": "ts-node -r esm test/manual/cli.ts",
     "build": "tsc",
     "lint": "eslint src/**/*.ts test/**/*.ts",
     "test": "nyc mocha",
@@ -37,6 +38,7 @@
     "chai": "^4.2.0",
     "coveralls": "^3.0.5",
     "eslint": "^6.1.0",
+    "esm": "^3.2.25",
     "husky": "^3.0.1",
     "if-node-version": "^1.1.1",
     "mocha": "^6.2.0",
