@@ -1,7 +1,8 @@
 import { green, yellow, cyan } from 'kleur';
 import { Command } from './command';
-import { resolveCommand } from './commands';
 import { inputErrorHandler } from './handlers';
+
+type Commands = {[path: string]: Command}
 
 type ProgramConfig = {
 	rootCommandKey?: string,
@@ -23,16 +24,18 @@ const process = (args: string[], command: Command, config: Required<ProgramConfi
 	// TODO: ...
 };
 
-const parse = (argv: string[], commands: object, config: Required<ProgramConfig>) => {
-	try {
-		const cmdContext = resolveCommand(commands, argv, config.rootCommandKey);
-		// TODO: ...
-	} catch (e) {
-		config.inputErrorHandler(e);
-	}
+const parse = (argv: string[], commands: Commands, config: Required<ProgramConfig>) => {
+	// try {
+	// 	const cmdContext = resolveCommand(commands, argv, config.rootCommandKey);
+	// 	if (cmdContext.command !== null) {
+	// 		console.log(cmdContext.command.getMeta());
+	// 	}
+	// } catch (e) {
+	// 	config.inputErrorHandler(e);
+	// }
 };
 
-export const program = (commands: object, conf?: ProgramConfig) => {
+export const program = (commands: Commands, conf?: ProgramConfig) => {
 	const config = makeProgramConfig(conf);
 
 	return {
