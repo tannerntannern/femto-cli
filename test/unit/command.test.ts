@@ -22,22 +22,28 @@ describe('command()', () => {
 
 		it('should report argument definitions properly', () => {
 			expect(order.getArguments()).to.deep.equal([
-				{ type: 'string', summary: 'pizza or cake' },
-				{ type: 'number', summary: 'how many you want' }
+				{ required: false, type: 'string', summary: 'pizza or cake', description: null },
+				{ required: false, type: 'number', summary: 'how many you want', description: null }
 			]);
 		});
 
 		it('should report option definitions properly', () => {
 			expect(order.getOptions()).to.deep.equal({
-				'size': { type: 'string', summary: 'small, medium, or large' },
-				'include-drink': { summary: 'throw in a drink' }
+				'size': { required: false, type: 'string', alias: null, summary: 'small, medium, or large', description: null },
+				'include-drink': { required: false, type: 'boolean', alias: null, summary: 'throw in a drink', description: null }
 			});
 		});
 
 		it('should call the action with the proper arguments', () => {
-			order.exec({ size: 'large', 'include-drink': true }, 'pizza', 3);
+			order.exec({
+				options: { size: 'large', 'include-drink': true },
+				args: ['pizza', 3]
+			});
 
-			expect(orderSpy.calledOnceWithExactly({ size: 'large', 'include-drink': true }, 'pizza', 3)).to.be.true;
+			expect(orderSpy.calledOnceWithExactly({
+				options: { size: 'large', 'include-drink': true },
+				args: ['pizza', 3],
+			})).to.be.true;
 		});
 	});
 });
