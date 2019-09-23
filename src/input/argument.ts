@@ -1,4 +1,4 @@
-import { Any, O as Obj } from 'ts-toolbelt';
+import { Any, O as Obj, T as Tup } from 'ts-toolbelt';
 import { Config, config } from './config';
 import { InputType, TypeMap, InputConfig, inputDefaults } from './input';
 
@@ -20,6 +20,14 @@ export type ArgumentConfigs = ArgumentConfig[];
 export type Arguments<Confs extends ArgumentConfigs> = {
 	[I in keyof Confs]: Argument<Any.Cast<Confs[I], ArgumentConfig>>
 };
+
+// TODO: can this be used?
+type _ArgumentType<
+	C extends ArgumentConfig,
+	_A extends Argument<ArgumentConfig> = Any.Cast<Argument<C>, Argument<ArgumentConfig>>
+> = true extends _A['required']
+	? [TypeMap[_A['type']]]
+	: [TypeMap[_A['type']]?];
 
 // TODO: implement required
 export type ArgumentTypes<L extends ArgumentConfigs> = {

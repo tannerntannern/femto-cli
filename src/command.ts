@@ -1,9 +1,10 @@
 // TODO: implement enum types!
 
-import { A as Any, T as Tup } from 'ts-toolbelt';
+import { A as Any, O as Obj, T as Tup } from 'ts-toolbelt';
 import {
 	ArgumentConfig,
 	ArgumentConfigs,
+	Argument,
 	Arguments,
 	ArgumentTypes,
 	makeArgument,
@@ -21,7 +22,7 @@ type KeyPair<Key extends string, Val extends any> = {[K in Key]: Val};
 
 type VoidLike = void | Promise<void>;
 type Action<A extends ArgumentConfigs, O extends OptionConfigs, R> = (inputs: Any.Compute<{
-	args: Tup.Reverse<ArgumentTypes<A>>,
+	args: ArgumentTypes<Tup.Reverse<A>>,
 	options: OptionTypes<O>,
 }>) => R;
 
@@ -29,23 +30,44 @@ export type Command<
 	Meta extends DocumentationConfig,
 	Arg extends ArgumentConfigs,
 	Opt extends OptionConfigs,
-	D extends boolean = boolean
+	HasAction extends boolean,
+	CanAddReqArg extends boolean,
 > = {
-	meta: <M extends DocumentationConfig>(meta: M) => Command<M, Arg, Opt, D>,
-	argument: <C extends ArgumentConfig>(config: C) => Command<Meta, Tup.Prepend<Arg, C>, Opt, D>,
-	option: <N extends string, C extends OptionConfig>(name: N, config: C) => Command<Meta, Arg, Any.Compute<Opt & KeyPair<N, C>>, D>,
-	action: <Act extends Action<Arg, Opt, VoidLike>>(action: Act) => Command<Meta, Arg, Opt, true>,
-	exec: Action<Arg, Opt, true extends D ? VoidLike : never>,
+	meta: <M extends DocumentationConfig>(meta: M) =>
+		Command<M, Arg, Opt, HasAction, CanAddReqArg>,
+	argument: <C extends (true extends CanAddReqArg ? ArgumentConfig : ArgumentConfig & {required?: false})>(config: C) =>
+		Command<Meta, Tup.Prepend<Arg, C>, Opt, HasAction, Any.Cast<Argument<C>, Argument<ArgumentConfig>>['required']>,
+	option: <N extends string, C extends OptionConfig>(name: N, config: C) =>
+		Command<Meta, Arg, Any.Compute<Opt & KeyPair<N, C>>, HasAction, CanAddReqArg>,
+	action: <Act extends Action<Arg, Opt, VoidLike>>(action: Act) =>
+		Command<Meta, Arg, Opt, true, CanAddReqArg>,
+
+	exec: Action<Arg, Opt, true extends HasAction ? VoidLike : never>,
 	getMeta: () => Documentation<Meta>,
 	getArguments: () => Arguments<Tup.Reverse<Arg>>,
 	getOptions: () => Any.Compute<Options<Opt>>,
 };
 
-const validateArguments = <Confs extends ArgumentConfigs>(
-	args: Arguments<Confs>,
-	argValues: ArgumentTypes<Confs>,
-) => {
-	// TODO: ...
+const validateArguments = <Confs extends ArgumentConfigs>(args: Arguments<Confs>, argValues: ArgumentTypes<Confs>) => {
+	for (let i = 0; i < args.length; i ++) {
+		const num = i + 1;
+		const arg = args[i];
+		const argValue = argValues[i];
+		const typeofArgValue = typeof argValue;
+
+		if (typeofArgValue === 'undefined') {
+			if (arg.required) {
+				throw new Error(`No value supplied for required argument ${num}`);
+			} else {
+				// if we get here, we're at the end of the supplied argValues
+				break;
+			}
+		}
+
+		if (typeofArgValue !== arg.type) {
+			throw new Error(`Invalid value for argument ${num}: Expected ${arg.type} but got ${typeofArgValue}`);
+		}
+	}
 };
 
 const validateOptions = (options: Options<OptionConfigs>, optionValues: OptionTypes<OptionConfigs>) => {
@@ -78,12 +100,12 @@ export const command = <Meta extends DocumentationConfig>(meta: Meta) => {
 	let _action;
 
 	let commandRef;
-	const command: Command<Meta, [], {}, false> = {
+	const command: Command<Meta, [], {}, false, true> = {
 		getMeta: () => _met,
 		getArguments: () => _args as any,
 		getOptions: () => _options,
 		meta: m => { _met = makeDocumentation(m); return commandRef; },
-		argument: config => { _args.push(makeArgument(config)); return commandRef; },
+		argument: config => { _args.push(makeArgument(config as any)); return commandRef; },
 		option: (name, config) => { _options[name] = makeOption(config); return commandRef; },
 		action: a => { _action = a; return commandRef; },
 		// @ts-ignore: this is fine
@@ -92,7 +114,7 @@ export const command = <Meta extends DocumentationConfig>(meta: Meta) => {
 			validateArguments(_args, args);
 			validateOptions(_options, options);
 
-			return _action(...args);
+			return _action({ args, options });
 		}
 	};
 
