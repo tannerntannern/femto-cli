@@ -25,8 +25,6 @@ type Action<A extends ArgumentConfigs, O extends OptionConfigs, R> = (inputs: An
 	options: OptionTypes<O>,
 }>) => R;
 
-type ExecReturn<D extends boolean> = true extends D ? VoidLike : never;
-
 export type Command<
 	Meta extends DocumentationConfig,
 	Arg extends ArgumentConfigs,
@@ -37,34 +35,64 @@ export type Command<
 	argument: <C extends ArgumentConfig>(config: C) => Command<Meta, Tup.Prepend<Arg, C>, Opt, D>,
 	option: <N extends string, C extends OptionConfig>(name: N, config: C) => Command<Meta, Arg, Any.Compute<Opt & KeyPair<N, C>>, D>,
 	action: <Act extends Action<Arg, Opt, VoidLike>>(action: Act) => Command<Meta, Arg, Opt, true>,
-	exec: Action<Arg, Opt, ExecReturn<D>>,
+	exec: Action<Arg, Opt, true extends D ? VoidLike : never>,
 	getMeta: () => Documentation<Meta>,
 	getArguments: () => Arguments<Tup.Reverse<Arg>>,
 	getOptions: () => Any.Compute<Options<Opt>>,
+};
+
+const validateArguments = <Confs extends ArgumentConfigs>(
+	args: Arguments<Confs>,
+	argValues: ArgumentTypes<Confs>,
+) => {
+	// TODO: ...
+};
+
+const validateOptions = (options: Options<OptionConfigs>, optionValues: OptionTypes<OptionConfigs>) => {
+	for (let key of Object.getOwnPropertyNames(options)) {
+		const option = options[key];
+		const optionValue = optionValues[key];
+		const typeofOptionValue = typeof optionValue;
+
+		if (typeofOptionValue === 'undefined') {
+			if (option.required) {
+				throw new Error(`No value supplied for required option "${key}"`);
+			} else {
+				continue;
+			}
+		}
+
+		if (typeofOptionValue !== option.type) {
+			throw new Error(`Invalid value "${optionValue}" for option "${key}: Expected ${option.type} but got ${typeofOptionValue}`);
+		}
+	}
 };
 
 /**
  * Returns a command object that can further be built upon with a chainable API
  */
 export const command = <Meta extends DocumentationConfig>(meta: Meta) => {
-	let met: any = makeDocumentation(meta);
-	const args = [];
-	const options: any = {};
-	let action;
+	let _met: any = makeDocumentation(meta);
+	const _args = [];
+	const _options: any = {};
+	let _action;
 
 	let commandRef;
 	const command: Command<Meta, [], {}, false> = {
-		getMeta: () => met,
-		getArguments: () => args as any,
-		getOptions: () => options,
-		meta: m => { met = makeDocumentation(m); return commandRef; },
-		argument: config => { args.push(makeArgument(config)); return commandRef; },
-		option: (name, config) => { options[name] = makeOption(config); return commandRef; },
-		action: a => { action = a; return commandRef; },
+		getMeta: () => _met,
+		getArguments: () => _args as any,
+		getOptions: () => _options,
+		meta: m => { _met = makeDocumentation(m); return commandRef; },
+		argument: config => { _args.push(makeArgument(config)); return commandRef; },
+		option: (name, config) => { _options[name] = makeOption(config); return commandRef; },
+		action: a => { _action = a; return commandRef; },
 		// @ts-ignore: this is fine
-		exec: (...args) => {
-			if (!action) throw new Error('Command not implemented');
-			else return action(...args);
+		exec: ({ args, options }) => {
+			if (!_action) throw new Error('Command not implemented');
+			validateArguments(_args, args);
+			validateOptions(_options, options);
+
+			return _action(...args);
 		}
 	};
 

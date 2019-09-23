@@ -10,7 +10,7 @@ describe('command()', () => {
 		let order = command({ summary: 'Orders food for you' })
 			.argument({ type: 'string', summary: 'pizza or cake' })
 			.argument({ type: 'number', summary: 'how many you want' })
-			.option('size', { type: 'string', summary: 'small, medium, or large' })
+			.option('size', { type: 'string', required: true, summary: 'small, medium, or large' })
 			.option('include-drink', { summary: 'throw in a drink' })
 			.action(orderSpy);
 
@@ -44,6 +44,26 @@ describe('command()', () => {
 				options: { size: 'large', 'include-drink': true },
 				args: ['pizza', 3],
 			})).to.be.true;
+		});
+
+		it('should error when a required option is missing', () => {
+			expect(
+				() => order.exec({
+					args: ['pizza', 3],
+					// @ts-ignore
+					options: {}
+				})
+			).to.throw();
+		});
+
+		it('should error when an option has the wrong value type', () => {
+			expect(
+				() => order.exec({
+					args: ['pizza', 3],
+					// @ts-ignore
+					options: {size: 4}
+				})
+			).to.throw();
 		});
 	});
 });

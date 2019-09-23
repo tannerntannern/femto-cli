@@ -26,12 +26,11 @@ export type Options<Confs extends OptionConfigs> = {
 	[K in keyof Confs]: Option<Confs[K]>
 };
 
-// TODO: implement required
-export type OptionTypes<O extends OptionConfigs> = Any.Compute<{
-	[K in keyof O]: TypeMap[
-		Any.Cast<
-			'type' extends keyof O[K] ? O[K] : typeof optionDefaults,
-			{ type: OptionType }
-		>['type']
-	]
-}>;
+type GetOptionKeysWithOptionality<Confs extends OptionConfigs, R extends boolean, O extends Options<Confs> = Options<Confs>> = {
+	[K in keyof O]-?: R extends Any.Cast<O[K], {required: boolean}>['required'] ? K : never
+}[keyof O];
+
+export type OptionTypes<O extends OptionConfigs> = Obj.Merge<
+	{ [K in GetOptionKeysWithOptionality<O, false>]+?: TypeMap[O[K]['type']] },
+	{ [K in GetOptionKeysWithOptionality<O, true>]-?: TypeMap[O[K]['type']] }
+>;
