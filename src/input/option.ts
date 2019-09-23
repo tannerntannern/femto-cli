@@ -31,6 +31,6 @@ type GetOptionKeysWithOptionality<Confs extends OptionConfigs, R extends boolean
 }[keyof O];
 
 export type OptionTypes<O extends OptionConfigs> = Obj.Merge<
-	{ [K in GetOptionKeysWithOptionality<O, false>]+?: TypeMap[O[K]['type']] },
-	{ [K in GetOptionKeysWithOptionality<O, true>]-?: TypeMap[O[K]['type']] }
+	{ [K in GetOptionKeysWithOptionality<O, false>]+?: TypeMap[Any.Cast<Option<O[K]>, Option<OptionConfig>>['type']] },
+	{ [K in GetOptionKeysWithOptionality<O, true>]-?: TypeMap[Any.Cast<Option<O[K]>, Option<OptionConfig>>['type']] }
 >;
