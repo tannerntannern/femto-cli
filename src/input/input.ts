@@ -1,21 +1,26 @@
-import { Any } from 'ts-toolbelt';
+import { O as Obj } from 'ts-toolbelt';
 import { DocumentationConfig, documentationDefaults } from './documentation';
 import { Config, config } from './config';
 
-export type TypeMap = {
+type TypeMap = {
 	'boolean': boolean,
 	'string': string,
 	'number': number,
 };
 
-export type InputType = keyof TypeMap;
+export type InputType = keyof TypeMap | string[] | number[];
 
-export type InputConfig = Any.Compute<
-	DocumentationConfig & { required?: boolean }
+export type TypeOf<T extends InputType> = T extends keyof TypeMap ? TypeMap[T] : T[Exclude<keyof T, string>];
+
+export type InputConfig = Obj.Merge<
+	DocumentationConfig,
+	// TODO: enum types just result in string[] or number[] with getArguments(), getOptions(), exec(), etc.
+	{ type?: InputType, required?: boolean }
 >;
 
 export const inputDefaults = {
 	...documentationDefaults,
+	type: 'string' as 'string',
 	required: false as false,
 };
 

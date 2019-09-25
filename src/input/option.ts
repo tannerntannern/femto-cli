@@ -1,13 +1,8 @@
 import { A as Any, O as Obj } from 'ts-toolbelt';
 import { Config, config } from './config';
-import { InputConfig, InputType, TypeMap, inputDefaults } from './input';
+import { InputConfig, TypeOf, inputDefaults } from './input';
 
-type OptionType = InputType;
-
-export type OptionConfig = Obj.Merge<InputConfig, {
-	type?: OptionType,
-	alias?: string
-}>;
+export type OptionConfig = Obj.Merge<InputConfig, { alias?: string }>;
 
 export const optionDefaults = {
 	...inputDefaults,
@@ -31,6 +26,6 @@ type GetOptionKeysWithOptionality<Confs extends OptionConfigs, R extends boolean
 }[keyof O];
 
 export type OptionTypes<O extends OptionConfigs> = Obj.Merge<
-	{ [K in GetOptionKeysWithOptionality<O, false>]+?: TypeMap[Any.Cast<Option<O[K]>, Option<OptionConfig>>['type']] },
-	{ [K in GetOptionKeysWithOptionality<O, true>]-?: TypeMap[Any.Cast<Option<O[K]>, Option<OptionConfig>>['type']] }
+	{ [K in GetOptionKeysWithOptionality<O, false>]+?: TypeOf<Any.Cast<Option<O[K]>, Option<OptionConfig>>['type']> },
+	{ [K in GetOptionKeysWithOptionality<O, true>]-?: TypeOf<Any.Cast<Option<O[K]>, Option<OptionConfig>>['type']> }
 >;

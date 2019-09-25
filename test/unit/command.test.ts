@@ -10,7 +10,7 @@ describe('command()', () => {
 		let order = command({ summary: 'Orders food for you' })
 			.argument({ required: true, type: 'string', summary: 'pizza or cake' })
 			.argument({ type: 'number', summary: 'how many you want' })
-			.option('size', { type: 'string', required: true, summary: 'small, medium, or large' })
+			.option('size', { type: ['small', 'medium', 'large'], required: true, summary: 'pizza/cake size' })
 			.option('include-drink', { summary: 'throw in a drink' })
 			.action(orderSpy);
 
@@ -29,7 +29,7 @@ describe('command()', () => {
 
 		it('should report option definitions properly', () => {
 			expect(order.getOptions()).to.deep.equal({
-				'size': { required: true, type: 'string', alias: null, summary: 'small, medium, or large', description: null },
+				'size': { required: true, type: ['small', 'medium', 'large'], alias: null, summary: 'pizza/cake size', description: null },
 				'include-drink': { required: false, type: 'boolean', alias: null, summary: 'throw in a drink', description: null }
 			});
 		});

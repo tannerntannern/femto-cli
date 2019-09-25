@@ -1,6 +1,4 @@
-// TODO: implement enum types!
-
-import { A as Any, O as Obj, T as Tup } from 'ts-toolbelt';
+import { A as Any, T as Tup } from 'ts-toolbelt';
 import {
 	ArgumentConfig,
 	ArgumentConfigs,
@@ -13,6 +11,7 @@ import {
 	makeDocumentation,
 	OptionConfig,
 	OptionConfigs,
+	Option,
 	Options,
 	OptionTypes,
 	makeOption,
@@ -48,47 +47,26 @@ export type Command<
 	getOptions: () => Any.Compute<Options<Opt>>,
 };
 
-const validateArguments = <Confs extends ArgumentConfigs>(args: Arguments<Confs>, argValues: ArgumentTypes<Confs>) => {
-	for (let i = 0; i < args.length; i ++) {
-		const num = i + 1;
-		const arg = args[i];
-		const argValue = argValues[i];
-		const typeofArgValue = typeof argValue;
+const validateValue = <Conf extends Argument<ArgumentConfig> | Option<OptionConfig>>(conf: Conf, val: unknown, name: string) => {
+	const typeofVal = typeof val;
 
-		if (typeofArgValue === 'undefined') {
-			if (arg.required) {
-				throw new Error(`No value supplied for required argument ${num}`);
-			} else {
-				// if we get here, we're at the end of the supplied argValues
-				break;
-			}
-		}
+	if (typeofVal === 'undefined' && conf.required)
+		throw new Error(`No value supplied for ${name}`);
 
-		if (typeofArgValue !== arg.type) {
-			throw new Error(`Invalid value for argument ${num}: Expected ${arg.type} but got ${typeofArgValue}`);
-		}
-	}
+	if (conf.type instanceof Array && !(conf.type as any[]).includes(val))
+		throw new Error(`The ${name} must be one of the following: ${conf.type.join(', ')}`);
+
+	if (!(conf.type instanceof Array) && typeofVal !== conf.type)
+		throw new Error(`Invalid value for ${name}: Expected ${conf.type} but got ${typeofVal}`);
+
+	return true;
 };
 
-const validateOptions = (options: Options<OptionConfigs>, optionValues: OptionTypes<OptionConfigs>) => {
-	for (let key of Object.getOwnPropertyNames(options)) {
-		const option = options[key];
-		const optionValue = optionValues[key];
-		const typeofOptionValue = typeof optionValue;
+const validateArguments = <Confs extends ArgumentConfigs>(args: Arguments<Confs>, argValues: ArgumentTypes<Confs>) =>
+	args.forEach((arg, i) => validateValue(arg, argValues[i], `argument ${i + 1}`));
 
-		if (typeofOptionValue === 'undefined') {
-			if (option.required) {
-				throw new Error(`No value supplied for required option "${key}"`);
-			} else {
-				continue;
-			}
-		}
-
-		if (typeofOptionValue !== option.type) {
-			throw new Error(`Invalid value "${optionValue}" for option "${key}: Expected ${option.type} but got ${typeofOptionValue}`);
-		}
-	}
-};
+const validateOptions = (options: Options<OptionConfigs>, optionValues: OptionTypes<OptionConfigs>) =>
+	Object.keys(options).forEach(key => validateValue(options[key], optionValues[key], `option ${key}`));
 
 /**
  * Returns a command object that can further be built upon with a chainable API

@@ -1,10 +1,8 @@
-import { Any, O as Obj, T as Tup } from 'ts-toolbelt';
+import { Any, O as Obj } from 'ts-toolbelt';
 import { Config, config } from './config';
-import { InputType, TypeMap, InputConfig, inputDefaults } from './input';
+import { InputType, TypeOf, InputConfig, inputDefaults } from './input';
 
-type ArgumentType = Exclude<InputType, 'boolean'>;
-
-export type ArgumentConfig = Obj.Merge<InputConfig, { type?: ArgumentType }>;
+export type ArgumentConfig = Obj.Merge<InputConfig, {}>;
 
 export const argumentDefaults = {
 	...inputDefaults,
@@ -26,15 +24,15 @@ type _ArgumentType<
 	C extends ArgumentConfig,
 	_A extends Argument<ArgumentConfig> = Any.Cast<Argument<C>, Argument<ArgumentConfig>>
 > = true extends _A['required']
-	? [TypeMap[_A['type']]]
-	: [TypeMap[_A['type']]?];
+	? [TypeOf<_A['type']>]
+	: [TypeOf<_A['type']>?];
 
 // TODO: implement required
 export type ArgumentTypes<L extends ArgumentConfigs> = {
-	[I in keyof L]: TypeMap[
+	[I in keyof L]: TypeOf<
 		Any.Cast<
 			'type' extends keyof L[I] ? L[I] : typeof argumentDefaults,
-			{ type: ArgumentType }
+			{ type: InputType }
 		>['type']
-	]
+	>
 };
