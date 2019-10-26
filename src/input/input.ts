@@ -8,13 +8,12 @@ type TypeMap = {
 	'number': number,
 };
 
-export type InputType = keyof TypeMap | string[] | number[];
+export type InputType = keyof TypeMap | readonly string[] | readonly number[];
 
-export type TypeOf<T extends InputType> = T extends keyof TypeMap ? TypeMap[T] : T[Exclude<keyof T, string>];
+export type TypeOf<T extends InputType> = T extends keyof TypeMap ? TypeMap[T] : T[number];
 
 export type InputConfig = Obj.Merge<
 	DocumentationConfig,
-	// TODO: enum types just result in string[] or number[] with getArguments(), getOptions(), exec(), etc.
 	{ type?: InputType, required?: boolean }
 >;
 

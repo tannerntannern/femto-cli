@@ -10,7 +10,7 @@ describe('command()', () => {
 		let order = command({ summary: 'Orders food for you' })
 			.argument({ required: true, type: 'string', summary: 'pizza or cake' })
 			.argument({ type: 'number', summary: 'how many you want' })
-			.option('size', { type: ['small', 'medium', 'large'], required: true, summary: 'pizza/cake size' })
+			.option('size', { type: <const>['small', 'medium', 'large'], required: true, summary: 'pizza/cake size' })
 			.option('include-drink', { summary: 'throw in a drink' })
 			.action(orderSpy);
 
