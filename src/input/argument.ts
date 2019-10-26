@@ -22,20 +22,20 @@ export type Arguments<Confs extends ArgumentConfigs> = {
 
 type RequiredArgIndices<
 	Confs extends ArgumentConfigs,
-	R extends boolean,
-	A extends Arguments<Confs> = Arguments<Confs>
+	Required extends boolean,
+	_Args extends Arguments<Confs> = Arguments<Confs>
 > = {
-	[K in keyof A]-?: R extends Any.Cast<A[K], {required: boolean}>['required'] ? K : never
+	[K in keyof _Args]-?: Required extends Any.Cast<_Args[K], {required: boolean}>['required'] ? K : never
 }[number];
 
 type _ArgumentTypes<
 	Confs extends ArgumentConfigs,
-	A extends Arguments<Confs> = Arguments<Confs>,
-	Req extends string = Any.Cast<RequiredArgIndices<A, true>, string>,
-	NonReq extends string = Any.Cast<RequiredArgIndices<A, false>, string>,
+	_Args extends Arguments<Confs> = Arguments<Confs>,
+	Req extends string = Any.Cast<RequiredArgIndices<_Args, true>, string>,
+	NonReq extends string = Any.Cast<RequiredArgIndices<_Args, false>, string>,
 > = Any.Compute<
-	{ [I in Req]-?: TypeOf<Any.Cast<A[Str.Format<I, 'n'>], {type: InputType}>['type']> }
-	& { [I in NonReq]+?: TypeOf<Any.Cast<A[Str.Format<I, 'n'>], {type: InputType}>['type']> }
+	{ [I in Req]-?: TypeOf<Any.Cast<_Args[Str.Format<I, 'n'>], {type: InputType}>['type']> }
+	& { [I in NonReq]+?: TypeOf<Any.Cast<_Args[Str.Format<I, 'n'>], {type: InputType}>['type']> }
 >;
 
 // TODO: convert to tuple with optional values?
