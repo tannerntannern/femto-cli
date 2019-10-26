@@ -21,11 +21,11 @@ export type Options<Confs extends OptionConfigs> = {
 	[K in keyof Confs]: Option<Confs[K]>
 };
 
-type GetOptionKeysWithOptionality<Confs extends OptionConfigs, R extends boolean, O extends Options<Confs> = Options<Confs>> = {
+type RequiredOptionKeys<Confs extends OptionConfigs, R extends boolean, O extends Options<Confs> = Options<Confs>> = {
 	[K in keyof O]-?: R extends Any.Cast<O[K], {required: boolean}>['required'] ? K : never
 }[keyof O];
 
-export type OptionTypes<O extends OptionConfigs> = Obj.Merge<
-	{ [K in GetOptionKeysWithOptionality<O, false>]+?: TypeOf<Any.Cast<Option<O[K]>, Option<OptionConfig>>['type']> },
-	{ [K in GetOptionKeysWithOptionality<O, true>]-?: TypeOf<Any.Cast<Option<O[K]>, Option<OptionConfig>>['type']> }
+export type OptionTypes<O extends OptionConfigs> = Any.Compute<
+	{ [K in RequiredOptionKeys<O, false>]+?: TypeOf<Any.Cast<Option<O[K]>, Option<OptionConfig>>['type']> }
+	& { [K in RequiredOptionKeys<O, true>]-?: TypeOf<Any.Cast<Option<O[K]>, Option<OptionConfig>>['type']> }
 >;

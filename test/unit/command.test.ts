@@ -8,8 +8,8 @@ describe('command()', () => {
 	describe('typical use case', () => {
 		let orderSpy = spy();
 		let order = command({ summary: 'Orders food for you' })
-			.argument({ required: true, type: 'string', summary: 'pizza or cake' })
-			.argument({ type: 'number', summary: 'how many you want' })
+			.argument({ type: <const>['pizza', 'cake'], summary: 'which food item' })
+			.argument({ required: false, type: 'number', summary: 'how many you want' })
 			.option('size', { type: <const>['small', 'medium', 'large'], required: true, summary: 'pizza/cake size' })
 			.option('include-drink', { summary: 'throw in a drink' })
 			.action(orderSpy);
@@ -22,7 +22,7 @@ describe('command()', () => {
 
 		it('should report argument definitions properly', () => {
 			expect(order.getArguments()).to.deep.equal([
-				{ required: true, type: 'string', summary: 'pizza or cake', description: null },
+				{ required: true, type: ['pizza', 'cake'], summary: 'which food item', description: null },
 				{ required: false, type: 'number', summary: 'how many you want', description: null }
 			]);
 		});
@@ -36,25 +36,25 @@ describe('command()', () => {
 
 		it('should call the action with the proper arguments', () => {
 			order.exec({
-				options: { size: 'large', 'include-drink': true },
-				args: ['pizza', 3]
-			});
-
-			expect(orderSpy.calledOnceWithExactly({
 				args: ['pizza', 3],
 				options: { size: 'large', 'include-drink': true },
-			})).to.be.true;
+			});
+
+			expect(orderSpy.getCall(0).args[0]).to.deep.equal({
+				args: ['pizza', 3],
+				options: { size: 'large', 'include-drink': true },
+			});
 		});
 
-		// TODO: ...
-		// it('should error when a required arg is missing', () => {
-		// 	expect(
-		// 		() => order.exec({
-		// 			args: ['pizza'],
-		// 			options: { size: 'medium' }
-		// 		})
-		// 	).to.throw();
-		// });
+		it('should error when a required arg is missing', () => {
+			expect(
+				() => order.exec({
+					// @ts-ignore
+					args: [],
+					options: { size: 'medium' }
+				})
+			).to.throw();
+		});
 
 		it('should error when an arg has the wrong type', () => {
 			expect(
